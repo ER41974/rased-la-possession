@@ -1,0 +1,71 @@
+/* === Tailwind v4 === */
+@import "tailwindcss";
+
+/* Indique à Tailwind où scanner les classes utilitaires */
+/* (Les fichiers sources sont configurés dans tailwind.config.js, pas ici) */
+
+/* === Variables & resets légers === */
+:root {
+  /* Couleur d’accent par défaut (surchargée via React avec style={{ "--accent": ACCENT }}) */
+  --accent: #000091;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: #fff; /* rendu propre et prévisible */
+}
+
+/* Améliorations typographiques globales */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #1e293b; /* Tailwind's text-slate-800 */
+}
+
+/* === Stepper collant + blur, avec fallback propre === */
+.stepper {
+  /* Fallback : translucide sans blur */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-top: 1px solid #e5e7eb; /* Tailwind's border-t default */
+  background-color: rgba(255, 255, 255, 0.9); /* Tailwind's bg-white/90 */
+}
+
+@supports (backdrop-filter: blur(8px)) {
+  .stepper {
+    /* Si le navigateur supporte le blur : fond plus léger + blur */
+    background-color: rgb(255 255 255 / 0.6);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* === Centrages formulaire (Card) ===
+   - .form-container : limite la largeur utile et centre les contenus
+   - .centered-form .field-grid : force 1 colonne et centre libellés + champs
+*/
+.form-container {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.centered-form .field-grid {
+  grid-template-columns: 1fr !important; /* passe chaque FieldRow sur 1 colonne */
+}
+
+.centered-form .field-grid > div:first-child {
+  justify-self: center;
+  text-align: center; /* libellé centré */
+}
+
+.centered-form .field-grid > div:last-child {
+  justify-self: center; /* zone de saisie centrée */
+}
+
+/* (Optionnel) Si tu veux aussi centrer les petits "hints" sous les champs :
+   .centered-form .field-grid + .text-xs { text-align: center; }
+*/
