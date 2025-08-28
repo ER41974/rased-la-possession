@@ -266,7 +266,6 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
     <div><b>Type d’école</b><br/>${esc(d.etablissement?.type_ecole || "—")}</div>
     <div><b>Date de la demande</b><br/>${esc(d.etablissement?.date_demande || "—")}</div>
     <div><b>Enseignant</b><br/>${esc(d.etablissement?.enseignant || "—")}</div>
-    <div><b>Maintien</b><br/>${d.etablissement?.maintien ? "Oui" : "Non"}</div>
   </div>
   <div class="grid grid-2" style="margin-top:8px;">
     <div><b>Nom élève</b><br/>${esc(d.eleve?.nom || "—")}</div>
@@ -597,7 +596,6 @@ const DEFAULT_DATA: AnyData = {
     type_ecole: "",
     date_demande: "",
     enseignant: "",
-    maintien: false,
   },
   eleve: {
   nom: "",
@@ -610,7 +608,7 @@ const DEFAULT_DATA: AnyData = {
   niveau_maintien: "",
 },
 
-  
+
   famille: {
     responsable1_nom: "",
     responsable1_tel: "",
@@ -967,94 +965,48 @@ return (
       onChange={(v: any) => update("etablissement.date_demande", v)}
     />
   </Field>
-        {data.etablissement?.maintien && data.eleve?.deja_maintenu && (
-  <Field label="Niveau du maintien précédent" required>
-    <select
-      className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
-      value={data.eleve?.niveau_maintien ?? ""}
-      onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
-    >
-      <option value="">Sélectionner…</option>
-      {(() => {
-        const t = data.etablissement?.type_ecole as EcoleType | undefined;
-        const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire; // fallback complet
-        return options.map((niv) => (
-          <option key={niv} value={niv}>{niv}</option>
-        ));
-      })()}
-    </select>
-  </Field>
-)}
 
-      <Field label="Maintien (cette année) ?" required>
+<Field label="L’élève a-t-il déjà été maintenu ?" required>
 <div className="flex gap-3">
-    {([true, false] as const).map((v) => {
-      const active = data.etablissement?.maintien === v;
-      return (
-        <button
-          key={String(v)}
-          type="button"
-          className={`rounded-2xl border px-3 py-1 text-sm ${
-            active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
-          }`}
-          onClick={() => {
-  update("etablissement.maintien", v);
-  if (!v) {
-    update("eleve.deja_maintenu", undefined);
-    update("eleve.niveau_maintien", "");
-  }
+{([true, false] as const).map((v) => {
+const active = data.eleve?.deja_maintenu === v;
+return (
+<button
+key={String(v)}
+type="button"
+className={`rounded-2xl border px-3 py-1 text-sm ${
+active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
+}`}
+onClick={() => {
+update("eleve.deja_maintenu", v);
+if (!v) update("eleve.niveau_maintien", "");
 }}
+>
+{v ? "Oui" : "Non"}
+</button>
+);
+})}
+</div>
+</Field>
 
-        >
-          {v ? "Oui" : "Non"}
-        </button>
-      );
-    })}
-  </div>
-</Field>{data.etablissement?.maintien && (
-  <Field label="L’élève a-t-il déjà été maintenu ?" required>
-    <div className="flex gap-3">
-      {([true, false] as const).map((v) => {
-        const active = data.eleve?.deja_maintenu === v;
-        return (
-          <button
-            key={String(v)}
-            type="button"
-            className={`rounded-2xl border px-3 py-1 text-sm ${
-              active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
-            }`}
-            onClick={() => {
-              update("eleve.deja_maintenu", v);
-              if (!v) update("eleve.niveau_maintien", "");
-            }}
-          >
-            {v ? "Oui" : "Non"}
-          </button>
-        );
-      })}
-    </div>
-  </Field>
+{data.eleve?.deja_maintenu && (
+<Field label="Niveau du maintien précédent" required>
+<select
+className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
+value={data.eleve?.niveau_maintien ?? ""}
+onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
+>
+<option value="">Sélectionner…</option>
+{(() => {
+const t = data.etablissement?.type_ecole as EcoleType | undefined;
+const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire;
+return options.map((niv) => (
+<option key={niv} value={niv}>{niv}</option>
+));
+})()}
+</select>
+</Field>
 )}
-{data.etablissement?.maintien && data.eleve?.deja_maintenu && (
-  <Field label="Niveau du maintien précédent" required>
-    <select
-      className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
-      value={data.eleve?.niveau_maintien ?? ""}
-      onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
-    >
-      <option value="">Sélectionner…</option>
-      {(() => {
-        const t = data.etablissement?.type_ecole as EcoleType | undefined;
-        const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire;
-        return options.map((niv) => (
-          <option key={niv} value={niv}>{niv}</option>
-        ));
-      })()}
-    </select>
-  </Field>
-)}
-
-
       </div>
 
       <div>
