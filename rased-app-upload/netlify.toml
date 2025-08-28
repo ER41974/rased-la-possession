@@ -1,0 +1,10 @@
+[build]
+  # Dossier où se trouve le code source et le package.json
+  base = "rased-app-upload"
+  
+  # Commande pour construire le site
+  command = "npm run build"
+  
+  # Dossier à publier une fois le site construit
+  publish = "dist"
+  
