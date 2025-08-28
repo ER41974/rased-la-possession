@@ -889,19 +889,35 @@ return (
         <h2 className="text-xl font-semibold mb-2">Établissement</h2>
 
         <Field label="Type d’école" required>
-          <div className="flex flex-wrap gap-4">
-<button
-  type="button"
-  onClick={() => {
-    const sel = ECOLES_POSSESSION.find(s => s.nom === data.etablissement?.ecole);
-    if (sel?.type) update("etablissement.type_ecole", sel.type);
-  }}
-  className="text-xs px-2 py-1 rounded border bg-white"
-  style={{ borderColor: DSFR_BORDER }}
-  title="Renseigner automatiquement d’après l’école"
->
-  Auto depuis l’école
-</button>
+          <div className="flex flex-wrap gap-3">
+            {(["Maternelle", "Élémentaire", "Primaire"] as const).map((type) => {
+              const active = data.etablissement?.type_ecole === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className={`rounded-full border px-4 py-2 text-sm transition ${
+                    active
+                      ? "bg-[var(--DSFR_ACCENT)] text-white"
+                      : "bg-white hover:bg-gray-50"
+                  }`}
+                  style={{
+                    borderColor: active ? "var(--DSFR_ACCENT)" : "var(--DSFR_BORDER)",
+                  }}
+                  onClick={() => {
+                    if (data.etablissement?.type_ecole === type) {
+                      update("etablissement.type_ecole", "");
+                    } else {
+                      update("etablissement.type_ecole", type);
+                    }
+                    update("etablissement.ecole", "");
+                    update("etablissement.ecole_libre", "");
+                  }}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
         </Field>
 
@@ -928,6 +944,22 @@ return (
             ))}
             <option value="__AUTRE__">Autre… (saisie manuelle)</option>
           </select>
+
+          {data.etablissement?.ecole && data.etablissement.ecole !== "__AUTRE__" && !data.etablissement.type_ecole && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const sel = ECOLES_POSSESSION.find(s => s.nom === data.etablissement?.ecole);
+                  if (sel?.type) update("etablissement.type_ecole", sel.type);
+                }}
+                className="text-xs px-3 py-1.5 rounded-full border bg-white"
+                style={{ borderColor: "var(--DSFR_BORDER)" }}
+              >
+                Renseigner le type d’après l’école sélectionnée
+              </button>
+            </div>
+          )}
 
           {data.etablissement.ecole === "__AUTRE__" && (
             <div className="mt-2">
