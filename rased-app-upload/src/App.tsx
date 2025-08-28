@@ -266,7 +266,6 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
     <div><b>Type d’école</b><br/>${esc(d.etablissement?.type_ecole || "—")}</div>
     <div><b>Date de la demande</b><br/>${esc(d.etablissement?.date_demande || "—")}</div>
     <div><b>Enseignant</b><br/>${esc(d.etablissement?.enseignant || "—")}</div>
-    <div><b>Maintien</b><br/>${d.etablissement?.maintien ? "Oui" : "Non"}</div>
   </div>
   <div class="grid grid-2" style="margin-top:8px;">
     <div><b>Nom élève</b><br/>${esc(d.eleve?.nom || "—")}</div>
@@ -597,7 +596,6 @@ const DEFAULT_DATA: AnyData = {
     type_ecole: "",
     date_demande: "",
     enseignant: "",
-    maintien: false,
   },
   eleve: {
   nom: "",
@@ -610,7 +608,7 @@ const DEFAULT_DATA: AnyData = {
   niveau_maintien: "",
 },
 
-  
+
   famille: {
     responsable1_nom: "",
     responsable1_tel: "",
@@ -891,19 +889,35 @@ return (
         <h2 className="text-xl font-semibold mb-2">Établissement</h2>
 
         <Field label="Type d’école" required>
-          <div className="flex flex-wrap gap-4">
-<button
-  type="button"
-  onClick={() => {
-    const sel = ECOLES_POSSESSION.find(s => s.nom === data.etablissement?.ecole);
-    if (sel?.type) update("etablissement.type_ecole", sel.type);
-  }}
-  className="text-xs px-2 py-1 rounded border bg-white"
-  style={{ borderColor: DSFR_BORDER }}
-  title="Renseigner automatiquement d’après l’école"
->
-  Auto depuis l’école
-</button>
+          <div className="flex flex-wrap gap-3">
+            {(["Maternelle", "Élémentaire", "Primaire"] as const).map((type) => {
+              const active = data.etablissement?.type_ecole === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className={`rounded-full border px-4 py-2 text-sm transition ${
+                    active
+                      ? "bg-[var(--DSFR_ACCENT)] text-white"
+                      : "bg-white hover:bg-gray-50"
+                  }`}
+                  style={{
+                    borderColor: active ? "var(--DSFR_ACCENT)" : "var(--DSFR_BORDER)",
+                  }}
+                  onClick={() => {
+                    if (data.etablissement?.type_ecole === type) {
+                      update("etablissement.type_ecole", "");
+                    } else {
+                      update("etablissement.type_ecole", type);
+                    }
+                    update("etablissement.ecole", "");
+                    update("etablissement.ecole_libre", "");
+                  }}
+                >
+                  {type}
+                </button>
+              );
+            })}
           </div>
         </Field>
 
@@ -930,6 +944,22 @@ return (
             ))}
             <option value="__AUTRE__">Autre… (saisie manuelle)</option>
           </select>
+
+          {data.etablissement?.ecole && data.etablissement.ecole !== "__AUTRE__" && !data.etablissement.type_ecole && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const sel = ECOLES_POSSESSION.find(s => s.nom === data.etablissement?.ecole);
+                  if (sel?.type) update("etablissement.type_ecole", sel.type);
+                }}
+                className="text-xs px-3 py-1.5 rounded-full border bg-white"
+                style={{ borderColor: "var(--DSFR_BORDER)" }}
+              >
+                Renseigner le type d’après l’école sélectionnée
+              </button>
+            </div>
+          )}
 
           {data.etablissement.ecole === "__AUTRE__" && (
             <div className="mt-2">
@@ -967,94 +997,48 @@ return (
       onChange={(v: any) => update("etablissement.date_demande", v)}
     />
   </Field>
-        {data.etablissement?.maintien && data.eleve?.deja_maintenu && (
-  <Field label="Niveau du maintien précédent" required>
-    <select
-      className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
-      value={data.eleve?.niveau_maintien ?? ""}
-      onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
-    >
-      <option value="">Sélectionner…</option>
-      {(() => {
-        const t = data.etablissement?.type_ecole as EcoleType | undefined;
-        const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire; // fallback complet
-        return options.map((niv) => (
-          <option key={niv} value={niv}>{niv}</option>
-        ));
-      })()}
-    </select>
-  </Field>
-)}
 
-      <Field label="Maintien (cette année) ?" required>
+<Field label="L’élève a-t-il déjà été maintenu ?" required>
 <div className="flex gap-3">
-    {([true, false] as const).map((v) => {
-      const active = data.etablissement?.maintien === v;
-      return (
-        <button
-          key={String(v)}
-          type="button"
-          className={`rounded-2xl border px-3 py-1 text-sm ${
-            active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
-          }`}
-          onClick={() => {
-  update("etablissement.maintien", v);
-  if (!v) {
-    update("eleve.deja_maintenu", undefined);
-    update("eleve.niveau_maintien", "");
-  }
+{([true, false] as const).map((v) => {
+const active = data.eleve?.deja_maintenu === v;
+return (
+<button
+key={String(v)}
+type="button"
+className={`rounded-2xl border px-3 py-1 text-sm ${
+active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
+}`}
+onClick={() => {
+update("eleve.deja_maintenu", v);
+if (!v) update("eleve.niveau_maintien", "");
 }}
+>
+{v ? "Oui" : "Non"}
+</button>
+);
+})}
+</div>
+</Field>
 
-        >
-          {v ? "Oui" : "Non"}
-        </button>
-      );
-    })}
-  </div>
-</Field>{data.etablissement?.maintien && (
-  <Field label="L’élève a-t-il déjà été maintenu ?" required>
-    <div className="flex gap-3">
-      {([true, false] as const).map((v) => {
-        const active = data.eleve?.deja_maintenu === v;
-        return (
-          <button
-            key={String(v)}
-            type="button"
-            className={`rounded-2xl border px-3 py-1 text-sm ${
-              active ? "border-[var(--DSFR_ACCENT)] ring-1 ring-[var(--DSFR_ACCENT)]" : "border-[var(--DSFR_BORDER)]"
-            }`}
-            onClick={() => {
-              update("eleve.deja_maintenu", v);
-              if (!v) update("eleve.niveau_maintien", "");
-            }}
-          >
-            {v ? "Oui" : "Non"}
-          </button>
-        );
-      })}
-    </div>
-  </Field>
+{data.eleve?.deja_maintenu && (
+<Field label="Niveau du maintien précédent" required>
+<select
+className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
+value={data.eleve?.niveau_maintien ?? ""}
+onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
+>
+<option value="">Sélectionner…</option>
+{(() => {
+const t = data.etablissement?.type_ecole as EcoleType | undefined;
+const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire;
+return options.map((niv) => (
+<option key={niv} value={niv}>{niv}</option>
+));
+})()}
+</select>
+</Field>
 )}
-{data.etablissement?.maintien && data.eleve?.deja_maintenu && (
-  <Field label="Niveau du maintien précédent" required>
-    <select
-      className="mt-2 w-full rounded-lg border border-[var(--DSFR_BORDER)] p-2"
-      value={data.eleve?.niveau_maintien ?? ""}
-      onChange={(e) => update("eleve.niveau_maintien", e.target.value || "")}
-    >
-      <option value="">Sélectionner…</option>
-      {(() => {
-        const t = data.etablissement?.type_ecole as EcoleType | undefined;
-        const options = t ? NIVEAUX_BY_TYPE[t] : NIVEAUX_BY_TYPE.Primaire;
-        return options.map((niv) => (
-          <option key={niv} value={niv}>{niv}</option>
-        ));
-      })()}
-    </select>
-  </Field>
-)}
-
-
       </div>
 
       <div>
