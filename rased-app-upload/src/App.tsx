@@ -898,11 +898,12 @@ return (
                   type="button"
                   className={`rounded-full border px-4 py-2 text-sm transition ${
                     active
-                      ? "bg-[var(--DSFR_ACCENT)] text-white"
+                      ? "text-white"
                       : "bg-white hover:bg-gray-50"
                   }`}
                   style={{
-                    borderColor: active ? "var(--DSFR_ACCENT)" : "var(--DSFR_BORDER)",
+                    background: active ? DSFR_ACCENT : "white",
+                    borderColor: active ? DSFR_ACCENT : DSFR_BORDER,
                   }}
                   onClick={() => {
                     if (data.etablissement?.type_ecole === type) {
