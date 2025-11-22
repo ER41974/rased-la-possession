@@ -36,6 +36,7 @@ const DEFAULT_DATA: AnyData = {
   apprentissages: [],
   apprentissages_detail: { lecture: { fluence_mcl: "", date: "" } },
   remarques_besoins: "",
+  besoins_prioritaires: ["", ""],
   conformites: { parents_informes: false, ppre_joint: false },
 };
 
@@ -49,36 +50,6 @@ const STEPS = [
   { title: "Remarques & besoins" },
   { title: "Conformité & export" },
 ];
-
-function canProceed(stepIndex: number, d: AnyData) {
-  switch (stepIndex) {
-    case 0: {
-      const E = d.etablissement || {};
-      const El = d.eleve || {};
-      const hasSchool = !!(E.ecole && E.ecole !== "__AUTRE__") || !!E.ecole_libre;
-      return (
-        hasSchool &&
-        !!E.type_ecole &&
-        !!E.date_demande &&
-        !!E.enseignant &&
-        !!El.nom &&
-        !!El.prenom &&
-        !!El.date_naissance &&
-        isDateISO(El.date_naissance) &&
-        !!El.sexe &&
-        !!El.niveau
-      );
-    }
-    case 1: {
-      const F = d.famille || {};
-      const okTel = !F.responsable1_tel || isPhoneFRRE(F.responsable1_tel || "");
-      const okEmail = !F.responsable1_email || isEmail(F.responsable1_email || "");
-      return okTel && okEmail;
-    }
-    default:
-      return true;
-  }
-}
 
 export default function App() {
   const [data, setData, saveStatus] = useAutoSave<AnyData>(LS_KEY, DEFAULT_DATA);
@@ -99,8 +70,6 @@ export default function App() {
     setStep(0);
     setIsResetModalOpen(false);
   };
-
-  const canNext = useMemo(() => canProceed(step, data), [step, data]);
 
   return (
     <Layout accentColor={data.settings?.accentColor}>
@@ -125,13 +94,16 @@ export default function App() {
               const completed = step > i;
               return (
                 <li key={i} className={`relative ${i !== STEPS.length - 1 ? 'w-full pr-4' : ''}`}>
-                  <div className="flex items-center">
+                  <button
+                    onClick={() => setStep(i)}
+                    className="flex items-center w-full focus:outline-none group"
+                  >
                     <div className={`
                       relative flex h-8 w-8 items-center justify-center rounded-full
                       transition-colors duration-200
                       ${active ? 'bg-blue-600 ring-2 ring-blue-600 ring-offset-2' : ''}
                       ${completed ? 'bg-blue-600' : ''}
-                      ${!active && !completed ? 'bg-gray-200' : ''}
+                      ${!active && !completed ? 'bg-gray-200 group-hover:bg-gray-300' : ''}
                     `}>
                       {completed ? (
                          <svg className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -144,9 +116,14 @@ export default function App() {
                     {i !== STEPS.length - 1 && (
                       <div className={`h-0.5 w-full ml-4 ${completed ? 'bg-blue-600' : 'bg-gray-200'}`} />
                     )}
-                  </div>
-                  <div className="mt-2">
-                    <span className={`text-xs font-medium ${active ? 'text-blue-600' : 'text-gray-500'}`}>{s.title}</span>
+                  </button>
+                  <div className="mt-2 text-left">
+                    <button
+                       onClick={() => setStep(i)}
+                       className={`text-xs font-medium focus:outline-none ${active ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`}
+                    >
+                      {s.title}
+                    </button>
                   </div>
                 </li>
               );
@@ -157,8 +134,10 @@ export default function App() {
 
       {/* Stepper Mobile */}
       <div className="md:hidden mb-6 flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-         <span className="text-sm font-medium text-gray-500">Étape {step + 1} sur {STEPS.length}</span>
-         <span className="text-sm font-semibold text-gray-900 truncate ml-2">{STEPS[step].title}</span>
+         <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-500">Étape {step + 1} sur {STEPS.length}</span>
+            <span className="text-sm font-semibold text-gray-900 truncate">{STEPS[step].title}</span>
+         </div>
          <div className="w-20 h-1.5 bg-gray-100 rounded-full ml-4 overflow-hidden">
             <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}></div>
          </div>
@@ -205,7 +184,6 @@ export default function App() {
               <Button
                 variant="primary"
                 onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-                disabled={!canNext}
               >
                 Suivant
               </Button>
