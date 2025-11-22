@@ -15,6 +15,25 @@ export type SuiviType =
 
 export type AnyData = Record<string, any>;
 
+export interface StudentData extends AnyData {
+  id: string;
+  name: string; // Display name for tab (computed from nom/prenom)
+}
+
+export interface SessionData {
+  teacher: {
+    nom: string;
+    ecole: string;
+    classe: string;
+  };
+  students: StudentData[];
+  currentStudentId: string;
+  meta: {
+    version: number;
+    lastSaved: string;
+  };
+}
+
 export const SUIVIS_TYPES: SuiviType[] = [
   "Orthophonie",
   "Orthoptie",
@@ -23,9 +42,7 @@ export const SUIVIS_TYPES: SuiviType[] = [
   "Psychologue libéral",
   "CMP",
   "CMPP",
-  "CAMSP (0-6 ans)",
-  "SESSAD",
-  "Autre",
+  "CAMSP (0-6 ans)"
 ];
 
 export const ORTHOPHONISTES_OUEST = [
