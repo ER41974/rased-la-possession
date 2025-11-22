@@ -21,11 +21,13 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, U
 .hint { font-size: 12px; opacity: .75; }
 .table { width:100%; border-collapse: collapse; margin-top: 6px; }
 .table th, .table td { border:1px solid #ddd; padding:6px; font-size:12px; vertical-align: top; }
-.section-title { color: var(--accent); margin: 8px 0; }
+.section-title { color: var(--accent); margin: 8px 0; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+.sub-title { font-weight: bold; margin-top: 8px; margin-bottom: 4px; font-size: 14px; }
 .badge { display:inline-block; padding:2px 6px; border-radius:6px; font-size:12px; border:1px solid var(--accent); }
 .grid { display:grid; gap:8px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .small { font-size: 12px; }
+.box { border: 1px solid #eee; padding: 8px; border-radius: 4px; background: #f9fafb; margin-top: 4px; }
 `;
 
 type PrintOptions = { title?: string; logoDataUrl?: string; accent?: string };
@@ -38,43 +40,49 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
       ? d.etablissement?.ecole
       : d.etablissement?.ecole_libre || "";
 
-  const suivis = Array.isArray(d.suivis_exterieurs) ? d.suivis_exterieurs : [];
-  const compRaw = Array.isArray(d.comportement) ? d.comportement : [];
-  const apprRaw = Array.isArray(d.apprentissages) ? d.apprentissages : [];
+  // Helpers for new structure
+  const getComp = (item: string) => (d.comportement || []).find((x: any) => x.item === item);
+  const getAppr = (item: string) => (d.apprentissages || []).find((x: any) => x.item === item);
 
-  // Notes intégrées à l'affichage
-  const comp = compRaw.map((c: any) => ({
-    item: c?.item,
-    niveau: [c?.niveau, c?.note ? `(${c.note})` : ""].filter(Boolean).join(" "),
-  }));
-  const appr = apprRaw.map((a: any) => ({
-    domaine: a?.domaine,
-    niveau: [a?.niveau, a?.note ? `(${a.note})` : ""].filter(Boolean).join(" "),
-  }));
+  const renderEvalRow = (item: string, entry: any) => {
+    if (!entry) return "";
+    return `<tr>
+      <td><b>${esc(item)}</b></td>
+      <td>${esc(entry.evaluation || "—")}</td>
+      <td>${esc(entry.observation || "")}</td>
+    </tr>`;
+  };
 
-  // Réponses de l'école
-  const rE = d.reponses_ecole || {};
-  const apc = rE.apc || {};
-  const diff = rE.differenciation || {};
-  const autres = rE.autres || "";
+  const renderRelRow = (item: string, entry: any) => {
+    if (!entry) return "";
+    return `<tr>
+      <td><b>${esc(item)}</b></td>
+      <td>
+        <div>Freq: ${esc(entry.frequence || "—")}</div>
+        <div>Qual: ${esc(entry.qualite || "—")}</div>
+      </td>
+      <td>${esc(entry.observation || "")}</td>
+    </tr>`;
+  };
 
-  // Santé
-  const S = d.sante || {};
-  const showSante = [S.trouble_auditif, S.trouble_visuel, S.trouble_auditif_details, S.trouble_visuel_details]
-    .some((v) => !!v && v !== "Non");
+  // Section Data
+  const COMP_ITEMS = [
+    "Autonomie", "Intérêt scolaire", "Attention / concentration", "Confiance en soi",
+    "Rythme de travail", "Attitude face à la difficulté / à l’erreur", "Respect des règles"
+  ];
+  const REL_ITEMS = ["Relation aux pairs", "Relation aux adultes"];
 
-  // Détails suivis : concat fréquence + professionnel
-  const suivisForPrint = suivis.map((r: any) => ({
-    dispositif: r?.dispositif || "",
-    details: [r?.frequence, r?.professionnel === "__AUTRE__" ? r?.professionnel_libre : r?.professionnel].filter(Boolean).join(" – "),
-    contact: r?.contact || "",
-  }));
+  const APPR_LECTURE = ["Connaissance des lettres", "Connaissance du code", "Écriture", "Compréhension écrite"];
+  const APPR_ORAL = ["Ose prendre la parole, demander de l’aide…", "Qualité du langage (syntaxe, vocabulaire…)", "Cohérence des propos", "Compréhension orale"];
+  const APPR_MATH = ["Structuration spatio-temporelle", "Numération", "Techniques opératoires"];
+  const APPR_TRANS = ["Compréhension des consignes", "Mémorisation"];
 
-  const rows = (arr: any[], cols: string[]) =>
-    arr.map((r) => `<tr>${cols.map((c) => `<td>${esc(r?.[c] ?? "")}</td>`).join("")}</tr>`).join("");
+  // Code & Fluence Details
+  const codeDetails = d.apprentissages_detail?.code || {};
+  const lectDetails = d.apprentissages_detail?.lecture || {};
 
-  const flu = d.apprentissages_detail?.lecture?.fluence_mcl;
-  const fluDate = d.apprentissages_detail?.lecture?.date;
+  // Besoins
+  const besoins = d.besoins_prioritaires || [];
 
   return `<!doctype html>
 <html lang="fr">
@@ -100,79 +108,75 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
   <h2 class="section-title">Établissement & élève</h2>
   <div class="grid grid-2">
     <div><b>École</b><br/>${esc(schoolName || "—")}</div>
-    <div><b>Type d’école</b><br/>${esc(d.etablissement?.type_ecole || "—")}</div>
-    <div><b>Date de la demande</b><br/>${esc(d.etablissement?.date_demande || "—")}</div>
     <div><b>Enseignant</b><br/>${esc(d.etablissement?.enseignant || "—")}</div>
-  </div>
-  <div class="grid grid-2" style="margin-top:8px;">
-    <div><b>Nom élève</b><br/>${esc(d.eleve?.nom || "—")}</div>
-    <div><b>Prénom élève</b><br/>${esc(d.eleve?.prenom || "—")}</div>
-    <div><b>Date de naissance</b><br/>${esc(d.eleve?.date_naissance || "—")}</div>
-    <div><b>Sexe</b><br/>${esc(d.eleve?.sexe || "—")}</div>
-    <div><b>Niveau</b><br/>${esc(d.eleve?.niveau || "—")}</div>
-    <div><b>Niveau de la classe</b><br/>${esc(d.eleve?.niveau_classe || "—")}</div>
+    <div><b>Élève</b><br/>${esc(d.eleve?.nom || "")} ${esc(d.eleve?.prenom || "")}</div>
+    <div><b>Niveau</b><br/>${esc(d.eleve?.niveau || "")} ${d.eleve?.niveau_classe ? `(${d.eleve.niveau_classe})` : ""}</div>
   </div>
 </section>
 
 <section class="section">
-  <h2 class="section-title">Réponses mises en place à l’école</h2>
-  ${apc.actif || diff.actif || autres
-    ? `<ul class="small" style="margin:4px 0 0 18px;">
-         ${apc.actif ? `<li><b>APC</b>${apc.details ? ` — ${esc(apc.details)}` : ""}</li>` : ""}
-         ${diff.actif ? `<li><b>Différenciation</b>${diff.details ? ` — ${esc(diff.details)}` : ""}</li>` : ""}
-         ${autres ? `<li><b>Autres</b> — ${esc(autres)}</li>` : ""}
-       </ul>`
-    : `<div class="hint">Aucune réponse renseignée.</div>`}
-</section>
-
-${showSante ? `
-<section class="section">
-  <h2 class="section-title">Santé — dépistage</h2>
-  <div class="grid grid-2">
-    <div><b>Auditif</b><br/>${esc(S.trouble_auditif || "—")}${S.trouble_auditif_details ? ` — ${esc(S.trouble_auditif_details)}` : ""}</div>
-    <div><b>Visuel</b><br/>${esc(S.trouble_visuel || "—")}${S.trouble_visuel_details ? ` — ${esc(S.trouble_visuel_details)}` : ""}</div>
-  </div>
-</section>` : ""}
-
-<section class="section">
-  <h2 class="section-title">Suivis extérieurs</h2>
-  ${suivisForPrint.length
-    ? `<table class="table"><thead><tr><th>Dispositif</th><th>Détails</th><th>Contact</th></tr></thead><tbody>${rows(
-        suivisForPrint, ["dispositif","details","contact"]
-      )}</tbody></table>`
-    : `<div class="hint">Aucun suivi déclaré.</div>`}
-</section>
-
-<section class="section">
-  <h2 class="section-title">Comportement</h2>
-  ${comp.length
-    ? `<table class="table"><thead><tr><th>Critère</th><th>Niveau</th></tr></thead><tbody>${rows(comp,["item","niveau"])}</tbody></table>`
-    : `<div class="hint">Non renseigné.</div>`}
+  <h2 class="section-title">Comportement & Relations</h2>
+  <table class="table">
+    <thead><tr><th style="width:40%">Item</th><th style="width:25%">Évaluation</th><th>Observations</th></tr></thead>
+    <tbody>
+      ${COMP_ITEMS.map(i => renderEvalRow(i, getComp(i))).join("")}
+      ${REL_ITEMS.map(i => renderRelRow(i, getComp(i))).join("")}
+    </tbody>
+  </table>
 </section>
 
 <section class="section">
   <h2 class="section-title">Apprentissages</h2>
-  ${appr.length
-    ? `<table class="table"><thead><tr><th>Domaine</th><th>Niveau</th></tr></thead><tbody>${rows(appr,["domaine","niveau"])}</tbody></table>`
-    : `<div class="hint">Non renseigné.</div>`}
-  ${flu ? `<div class="small" style="margin-top:6px;"><b>Fluence lecture</b> : ${esc(String(flu))} mcl/min${fluDate ? ` (mesure du ${esc(new Date(fluDate).toLocaleDateString("fr-FR"))})` : ""}</div>` : ""}
+
+  <div class="sub-title">Lecture</div>
+  <table class="table">
+    <tbody>
+       ${APPR_LECTURE.map(i => renderEvalRow(i, getAppr(i))).join("")}
+    </tbody>
+  </table>
+
+  ${(codeDetails.stade || codeDetails.observation) ? `
+  <div class="box small">
+    <b>Précisions Code :</b> Stade de maîtrise : ${esc(codeDetails.stade || "—")}<br/>
+    <i>${esc(codeDetails.observation || "")}</i>
+  </div>` : ""}
+
+  ${lectDetails.fluence_mcl ? `
+  <div class="box small">
+    <b>Fluence :</b> ${esc(lectDetails.fluence_mcl)} Mots/min (${esc(lectDetails.date || "")})
+  </div>` : ""}
+
+  <div class="sub-title">Langage Oral</div>
+  <table class="table">
+    <tbody>${APPR_ORAL.map(i => renderEvalRow(i, getAppr(i))).join("")}</tbody>
+  </table>
+
+  <div class="sub-title">Mathématiques</div>
+  <table class="table">
+    <tbody>${APPR_MATH.map(i => renderEvalRow(i, getAppr(i))).join("")}</tbody>
+  </table>
+
+  <div class="sub-title">Transversal</div>
+  <table class="table">
+    <tbody>${APPR_TRANS.map(i => renderEvalRow(i, getAppr(i))).join("")}</tbody>
+  </table>
 </section>
 
 <section class="section pb">
-  <h2 class="section-title">Remarques & besoins</h2>
-  <div>${esc(d.remarques_besoins || "")}</div>
+  <h2 class="section-title">Besoins prioritaires</h2>
+  <ul>
+    <li>${esc(besoins[0] || "—")}</li>
+    <li>${esc(besoins[1] || "—")}</li>
+  </ul>
 </section>
 
 <section class="section">
-  <h2 class="section-title">Conformité</h2>
-  <div class="grid grid-2">
-    <div><b>Parents informés</b><br/>${d.conformites?.parents_informes ? "Oui" : "Non"}</div>
-    <div><b>PPRE joint</b><br/>${d.conformites?.ppre_joint ? "Oui" : "Non"}</div>
-  </div>
+  <h2 class="section-title">Remarques complémentaires</h2>
+  <div>${esc(d.remarques_besoins || "—")}</div>
 </section>
 
-<footer class="hint">
-  Généré localement — ${new Date().toLocaleDateString("fr-FR")}
+<footer class="hint" style="margin-top:24px; text-align:center;">
+  Généré localement — RASED
 </footer>
 </body>
 </html>`;

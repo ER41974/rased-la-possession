@@ -83,5 +83,13 @@ export const NIVEAUX_BY_TYPE: Record<EcoleType, readonly string[]> = {
   Primaire: ["TPS","PS","MS","GS","CP","CE1","CE2","CM1","CM2"],
 };
 
-export const RADIO_BEHAV = ["Jamais", "Rarement", "Souvent", "Toujours"];
-export const RADIO_LEVEL = ["Solide", "Satisfaisant", "Fragile", "En difficulté"];
+// --- New Scales ---
+export const RADIO_FREQ = ["Jamais", "Rarement", "Souvent", "Toujours"];
+export const RADIO_QUALITY = ["Excellente", "Bonne", "Fragile", "Problématique"];
+export const RADIO_EVAL = ["Très satisfaisant", "Satisfaisant", "Problématique"];
+
+export const CODE_STAGES = [
+  "Identification des lettres uniquement",
+  "Combinaison de syllabes simples (CV, VC, CVC)",
+  "Identification et combinaison des sons complexes"
+];
