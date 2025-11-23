@@ -35,14 +35,7 @@ const STEPS = [
 ];
 
 export default function App() {
-  // Initialize with legacy migration support
   const [session, setSession, saveStatus] = useAutoSave<SessionData>(LS_KEY, createEmptySession());
-
-  // Check for legacy data on mount (one-off check, effectively)
-  // Actually useAutoSave initializes state once.
-  // If we wanted to migrate, we'd check localStorage for "rased-form-v2" if "rased-session-v1" is missing.
-  // But simpler: if the user has no session, we start fresh.
-  // We can add an "Import Legacy" button later if needed, but let's stick to the new key.
 
   const [step, setStep] = useState(0);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -65,23 +58,21 @@ export default function App() {
 
   const handleAddStudent = () => {
     const newStudent = createEmptyStudent();
-    // Pre-fill with session teacher info
-    if (session.teacher.nom) newStudent.etablissement.enseignant = session.teacher.nom;
-    if (session.teacher.ecole) newStudent.etablissement.ecole = session.teacher.ecole;
+    // No need to pre-fill teacher info into student data anymore,
+    // as it is bound to the session.teacher object in the UI.
 
     setSession(prev => ({
       ...prev,
       students: [...prev.students, newStudent],
       currentStudentId: newStudent.id
     }));
-    setStep(0); // Reset wizard step for new student
+    setStep(0);
   };
 
   const handleDeleteStudent = () => {
     if (!deleteId) return;
     setSession(prev => {
       const nextStudents = prev.students.filter(s => s.id !== deleteId);
-      // If we deleted the current one, switch to the first available or create one
       let nextId = prev.currentStudentId;
       if (deleteId === prev.currentStudentId) {
         nextId = nextStudents.length > 0 ? nextStudents[0].id : "";
@@ -107,12 +98,6 @@ export default function App() {
 
   const handleSelectStudent = (id: string) => {
     setSession(prev => ({ ...prev, currentStudentId: id }));
-    // Optional: Reset step or remember per student?
-    // Prompt says "Le wizard interne par élève".
-    // Ideally step should be stored in StudentData if we want to persist "where we left off".
-    // For now, we keep a global step or reset it. Global step is confusing when switching.
-    // Let's keep global step for simplicity, or reset to 0.
-    // Let's reset to 0 to avoid confusion (e.g. Step 5 on Student A, switch to Student B who is empty).
     setStep(0);
   };
 
@@ -143,7 +128,6 @@ export default function App() {
     if (!file) return;
     setImportFile(file);
     setShowImportConfirm(true);
-    // Reset input
     e.target.value = "";
   };
 
@@ -152,7 +136,6 @@ export default function App() {
     try {
       const text = await importFile.text();
       const json = JSON.parse(text);
-      // Basic validation: check if it has students array or teacher object
       if (!Array.isArray(json.students)) {
         alert("Format invalide : le fichier ne contient pas de liste d'élèves.");
         return;
@@ -167,13 +150,25 @@ export default function App() {
     }
   };
 
+  // Prepare data for print (Merge session teacher info)
+  const preparePrintData = (student: StudentData, teacher: SessionData['teacher']) => {
+    return {
+      ...student,
+      etablissement: {
+        ...student.etablissement,
+        ecole: teacher.ecole,
+        type_ecole: teacher.type_ecole,
+        enseignant: teacher.nom
+      }
+    };
+  };
+
   return (
     <Layout
       accentColor={currentStudent.settings?.accentColor}
       sidebar={
         <Sidebar
           session={session}
-          onUpdateTeacher={handleUpdateTeacher}
           onSelectStudent={handleSelectStudent}
           onAddStudent={handleAddStudent}
           onDeleteStudent={(id) => setDeleteId(id)}
@@ -280,7 +275,14 @@ export default function App() {
       </div>
 
       <Card title={STEPS[step].title} className="mb-8 animate-fade-in">
-        {step === 0 && <EtablissementEleve data={currentStudent} update={updateCurrentStudent} />}
+        {step === 0 && (
+          <EtablissementEleve
+            data={currentStudent}
+            update={updateCurrentStudent}
+            teacher={session.teacher}
+            onUpdateTeacher={handleUpdateTeacher}
+          />
+        )}
         {step === 1 && <Famille data={currentStudent} update={updateCurrentStudent} />}
         {step === 2 && <DifficultesSuivis data={currentStudent} update={updateCurrentStudent} />}
         {step === 3 && <PlaceParents data={currentStudent} update={updateCurrentStudent} />}
@@ -292,7 +294,11 @@ export default function App() {
             data={currentStudent}
             update={updateCurrentStudent}
             onExportJSON={() => exportJSON(currentStudent, `rased-${currentStudent.name || "eleve"}.json`)}
-            onPrint={() => doPrint(currentStudent, currentStudent.settings?.logoUrl || "", currentStudent.settings?.accentColor)}
+            onPrint={() => doPrint(
+              preparePrintData(currentStudent, session.teacher),
+              currentStudent.settings?.logoUrl || "",
+              currentStudent.settings?.accentColor
+            )}
           />
         )}
       </Card>

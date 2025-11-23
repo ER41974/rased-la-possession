@@ -24,6 +24,7 @@ export interface SessionData {
   teacher: {
     nom: string;
     ecole: string;
+    type_ecole: string;
     classe: string;
   };
   students: StudentData[];

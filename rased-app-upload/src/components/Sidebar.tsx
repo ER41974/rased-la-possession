@@ -1,11 +1,8 @@
 import React from "react";
 import type { SessionData } from "../types";
-import { Input } from "./ui/Input";
-import { Button } from "./ui/Button";
 
 interface SidebarProps {
   session: SessionData;
-  onUpdateTeacher: (field: string, value: string) => void;
   onSelectStudent: (id: string) => void;
   onAddStudent: () => void;
   onDeleteStudent: (id: string) => void;
@@ -13,42 +10,41 @@ interface SidebarProps {
 
 export function Sidebar({
   session,
-  onUpdateTeacher,
   onSelectStudent,
   onAddStudent,
   onDeleteStudent
 }: SidebarProps) {
   return (
     <aside className="w-full md:w-72 bg-white border-r border-gray-200 flex flex-col h-full">
-      {/* Teacher Section */}
-      <div className="p-4 border-b border-gray-200 bg-blue-50/30">
-        <h2 className="text-sm font-bold text-blue-900 uppercase tracking-wider mb-3">Enseignant</h2>
-        <div className="space-y-3">
-          <Input
-            placeholder="Nom / Prénom"
-            value={session.teacher.nom}
-            onChange={(e) => onUpdateTeacher("nom", e.target.value)}
-            className="bg-white text-sm"
-          />
-          <Input
-            placeholder="École"
-            value={session.teacher.ecole}
-            onChange={(e) => onUpdateTeacher("ecole", e.target.value)}
-            className="bg-white text-sm"
-          />
-          <Input
-            placeholder="Classe (ex. CE1)"
-            value={session.teacher.classe}
-            onChange={(e) => onUpdateTeacher("classe", e.target.value)}
-            className="bg-white text-sm"
-          />
+      {/* Teacher Summary (Read-Only) */}
+      <div className="p-6 border-b border-gray-200 bg-blue-50/50">
+        <h2 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-4">Session Enseignant</h2>
+        <div className="space-y-4">
+          <div>
+            <div className="text-xs text-gray-500 uppercase mb-1">Enseignant</div>
+            <div className="font-medium text-gray-900 truncate" title={session.teacher.nom}>
+              {session.teacher.nom || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 uppercase mb-1">École</div>
+            <div className="font-medium text-gray-900 truncate" title={session.teacher.ecole}>
+              {session.teacher.ecole || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 uppercase mb-1">Classe</div>
+            <div className="font-medium text-gray-900 truncate" title={session.teacher.classe}>
+              {session.teacher.classe || "—"}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Student List */}
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Élèves</h2>
+          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Demandes ({session.students.length})</h2>
           <button
             onClick={onAddStudent}
             className="text-blue-600 hover:bg-blue-50 p-1 rounded-full transition-colors"
@@ -83,7 +79,6 @@ export function Sidebar({
                   {displayName}
                 </div>
 
-                {/* Delete button (show on hover or if active, but careful not to delete accidentally) */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
