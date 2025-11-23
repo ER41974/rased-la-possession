@@ -27,7 +27,7 @@ export const createEmptyStudent = (id: string = crypto.randomUUID()): StudentDat
 export const createEmptySession = (): SessionData => {
   const student = createEmptyStudent();
   return {
-    teacher: { nom: "", ecole: "", classe: "" },
+    teacher: { nom: "", ecole: "", type_ecole: "", classe: "" },
     students: [student],
     currentStudentId: student.id,
     meta: { version: 1, lastSaved: new Date().toISOString() },
