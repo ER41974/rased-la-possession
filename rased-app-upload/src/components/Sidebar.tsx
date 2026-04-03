@@ -16,9 +16,25 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <aside className="w-full md:w-72 bg-white border-r border-gray-200 flex flex-col h-full">
+      {/* Institution Logo & Marianne */}
+      <div className="p-6 border-b border-gray-200 flex flex-col items-center gap-4 bg-white">
+        <div className="flex items-center gap-2 text-[--color-blue-france-sun] font-bold text-sm tracking-widest uppercase">
+          {/* Simple textual placeholder for Marianne / Academie */}
+          <div className="border-l-4 border-[--color-blue-france-sun] pl-2 flex flex-col leading-tight">
+            <span>République</span>
+            <span>Française</span>
+          </div>
+          <div className="w-px h-8 bg-gray-300 mx-2"></div>
+          <div className="flex flex-col leading-tight text-xs text-gray-700">
+            <span>Académie</span>
+            <span>de La Réunion</span>
+          </div>
+        </div>
+      </div>
+
       {/* Teacher Summary (Read-Only) */}
-      <div className="p-6 border-b border-gray-200 bg-blue-50/50">
-        <h2 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-4">Session Enseignant</h2>
+      <div className="p-6 border-b border-gray-200 bg-[--color-dsfr-alt]">
+        <h2 className="text-xs font-bold text-[--color-blue-france-sun] uppercase tracking-wider mb-4">Session Enseignant</h2>
         <div className="space-y-4">
           <div>
             <div className="text-xs text-gray-500 uppercase mb-1">Enseignant</div>
@@ -44,10 +60,10 @@ export function Sidebar({
       {/* Student List */}
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Demandes ({session.students.length})</h2>
+          <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Demandes ({session.students.length})</h2>
           <button
             onClick={onAddStudent}
-            className="text-blue-600 hover:bg-blue-50 p-1 rounded-full transition-colors"
+            className="text-[--color-blue-france-sun] hover:bg-gray-100 p-1 rounded-full transition-colors"
             title="Ajouter un élève"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,10 +84,10 @@ export function Sidebar({
               <div
                 key={student.id}
                 className={`
-                  group flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all
+                  group flex items-center justify-between p-3 cursor-pointer border-l-4 transition-all
                   ${isActive
-                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"}
+                    ? "bg-gray-50 text-[--color-blue-france-sun] border-[--color-blue-france-sun] shadow-sm font-semibold"
+                    : "bg-white text-gray-700 border-transparent hover:bg-gray-50"}
                 `}
                 onClick={() => onSelectStudent(student.id)}
               >

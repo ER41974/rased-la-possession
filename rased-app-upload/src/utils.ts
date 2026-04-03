@@ -20,6 +20,24 @@ export const esc = (s: any) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
+export function generateExportFilename(ecole: string, prenom: string, nom: string): string {
+  const sanitize = (str: string) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^a-zA-Z0-9-]/g, "_")  // Replace spaces and special chars with underscores
+      .replace(/_+/g, "_")             // Remove multiple consecutive underscores
+      .replace(/^_|_$/g, "")           // Trim underscores at start/end
+      .toLowerCase();
+  };
+
+  const safeEcole = sanitize(ecole || "ecole");
+  const safePrenom = sanitize(prenom || "prenom");
+  const safeNom = sanitize(nom || "nom");
+
+  return `demande-aide_${safeEcole}_${safeNom}_${safePrenom}`;
+}
+
 export function setByPath(obj: any, path: string, value: any) {
   const parts = path.split(".");
   const last = parts.pop()!;

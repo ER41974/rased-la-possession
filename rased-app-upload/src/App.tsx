@@ -7,7 +7,7 @@ import { Modal } from "./components/ui/Modal";
 import { SaveStatusIndicator } from "./components/ui/SaveStatus";
 import { useAutoSave } from "./hooks/useAutoSave";
 import type { AnyData, SessionData, StudentData } from "./types";
-import { setByPath, exportJSON, isDateISO, isEmail, isPhoneFRRE } from "./utils";
+import { setByPath, exportJSON, isDateISO, isEmail, isPhoneFRRE, generateExportFilename } from "./utils";
 import { createEmptySession, createEmptyStudent, migrateLegacyData } from "./sessionUtils";
 
 // Import Steps
@@ -293,7 +293,12 @@ export default function App() {
           <ConformiteExport
             data={currentStudent}
             update={updateCurrentStudent}
-            onExportJSON={() => exportJSON(currentStudent, `rased-${currentStudent.name || "eleve"}.json`)}
+            onExportJSON={() => {
+              const exportData = preparePrintData(currentStudent, session.teacher);
+              const { nom = "nom", prenom = "prenom" } = exportData.eleve || {};
+              const { ecole = "ecole" } = exportData.etablissement || {};
+              exportJSON(exportData, `${generateExportFilename(ecole, prenom, nom)}.json`);
+            }}
             onPrint={() => doPrint(
               preparePrintData(currentStudent, session.teacher),
               currentStudent.settings?.logoUrl || "",

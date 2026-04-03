@@ -7,19 +7,23 @@ interface LayoutProps {
   accentColor?: string;
 }
 
-export function Layout({ children, sidebar, headerContent, accentColor = "#000091" }: LayoutProps) {
+export function Layout({ children, sidebar, headerContent }: LayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800 overflow-hidden">
-      {/* Header decorative stripe */}
-      <div className="h-1.5 w-full flex-shrink-0" style={{ backgroundColor: accentColor }}></div>
+    <div className="min-h-screen flex flex-col bg-[--color-dsfr-background] font-sans text-slate-800 overflow-hidden">
+      {/* Header decorative stripe (Marianne colors) */}
+      <div className="h-1.5 w-full flex-shrink-0 flex">
+        <div className="flex-1 bg-[--color-blue-france-sun]"></div>
+        <div className="flex-1 bg-white"></div>
+        <div className="flex-1 bg-[--color-red-marianne-main]"></div>
+      </div>
 
       {/* Main Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm z-30 flex-shrink-0">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
              <div className="flex flex-col">
-               <span className="font-bold text-lg tracking-tight text-slate-900">RASED</span>
-               <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 leading-none">Formulaire de demande</span>
+               <span className="font-bold text-lg tracking-tight text-[--color-blue-france-sun]">RASED de La Possession</span>
+               <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 leading-none">Formulaire de demande d'aide</span>
              </div>
           </div>
           <div className="flex items-center gap-4">
