@@ -109,9 +109,54 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
   <div class="grid grid-2">
     <div><b>École</b><br/>${esc(schoolName || "—")}</div>
     <div><b>Enseignant</b><br/>${esc(d.etablissement?.enseignant || "—")}</div>
+    <div><b>Date de la demande</b><br/>${esc(d.etablissement?.date_demande || "—")}</div>
     <div><b>Élève</b><br/>${esc(d.eleve?.nom || "")} ${esc(d.eleve?.prenom || "")}</div>
+    <div><b>Date de naissance</b><br/>${esc(d.eleve?.date_naissance || "—")}</div>
+    <div><b>Sexe</b><br/>${esc(d.eleve?.sexe || "—")}</div>
     <div><b>Niveau</b><br/>${esc(d.eleve?.niveau || "")} ${d.eleve?.niveau_classe ? `(${d.eleve.niveau_classe})` : ""}</div>
+    <div><b>Déjà maintenu ?</b><br/>${d.eleve?.deja_maintenu ? `Oui (${esc(d.eleve?.niveau_maintien || "")})` : "Non"}</div>
   </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Famille</h2>
+  <div class="grid grid-2">
+    <div><b>Responsable légal 1</b><br/>${esc(d.famille?.responsable1_nom || "—")}<br/>${esc(d.famille?.responsable1_tel || "")} ${esc(d.famille?.responsable1_email || "")}</div>
+    <div><b>Responsable légal 2</b><br/>${d.famille?.responsable2_nom ? `${esc(d.famille?.responsable2_nom)}<br/>${esc(d.famille?.responsable2_tel || "")} ${esc(d.famille?.responsable2_email || "")}` : "—"}</div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Difficultés & suivis</h2>
+  <div class="sub-title">Difficultés observées</div>
+  <div>${esc(d.difficultes || "—")}</div>
+
+  <div class="sub-title">Réponses mises en place à l'école</div>
+  <ul>
+    <li><b>APC:</b> ${d.reponses_ecole?.apc?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.apc?.details ? `(${esc(d.reponses_ecole.apc.details)})` : ""}</li>
+    <li><b>Différenciation:</b> ${d.reponses_ecole?.differenciation?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.differenciation?.details ? `(${esc(d.reponses_ecole.differenciation.details)})` : ""}</li>
+    ${d.reponses_ecole?.autres ? `<li><b>Autres:</b> ${esc(d.reponses_ecole.autres)}</li>` : ""}
+  </ul>
+
+  <div class="sub-title">Santé — dépistage</div>
+  <ul>
+    <li><b>Problème auditif:</b> ${esc(d.sante?.trouble_auditif || "Non")} ${d.sante?.trouble_auditif_details ? `(${esc(d.sante.trouble_auditif_details)})` : ""}</li>
+    <li><b>Problème visuel:</b> ${esc(d.sante?.trouble_visuel || "Non")} ${d.sante?.trouble_visuel_details ? `(${esc(d.sante.trouble_visuel_details)})` : ""}</li>
+  </ul>
+
+  <div class="sub-title">Suivis extérieurs</div>
+  ${d.suivis_exterieurs && d.suivis_exterieurs.length > 0 ? `
+  <ul>
+    ${d.suivis_exterieurs.map((s: any) => `
+      <li><b>${esc(s.dispositif)}</b>: ${esc(s.professionnel || s.professionnel_libre || "")} ${s.frequence ? `(${esc(s.frequence)})` : ""} ${s.contact ? `[Contact: ${esc(s.contact)}]` : ""}</li>
+    `).join("")}
+  </ul>
+  ` : "Aucun suivi extérieur renseigné."}
+</section>
+
+<section class="section">
+  <h2 class="section-title">Place des parents</h2>
+  <div>${esc(d.place_parents || "—")}</div>
 </section>
 
 <section class="section">
@@ -182,9 +227,10 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
 </html>`;
 }
 
-export async function doPrint(data: AnyData, logoUrl: string, accent = "#000091") {
+export async function doPrint(data: AnyData, logoUrl: string, accent = "#000091", defaultFileName?: string) {
   const logoDataUrl = await toDataURL(logoUrl);
-  const html = buildPrintableHTML(data, { logoDataUrl, accent });
+  const title = defaultFileName || "Éducation nationale – RASED";
+  const html = buildPrintableHTML(data, { title, logoDataUrl, accent });
 
   const blob = new Blob([html], { type: "text/html" });
   const url = URL.createObjectURL(blob);
@@ -200,10 +246,19 @@ export async function doPrint(data: AnyData, logoUrl: string, accent = "#000091"
 
   document.body.appendChild(iframe);
   iframe.onload = () => {
+    // Attempt to rename the document title temporarily for the print dialog save name
+    const originalTitle = document.title;
+    if (defaultFileName) {
+      document.title = defaultFileName;
+    }
+
     try {
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
     } finally {
+      if (defaultFileName) {
+        document.title = originalTitle;
+      }
       setTimeout(() => {
         URL.revokeObjectURL(url);
         document.body.removeChild(iframe);
