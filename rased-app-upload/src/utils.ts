@@ -20,6 +20,16 @@ export const esc = (s: any) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
+export function sanitizeFilename(str: string): string {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove accents
+    .replace(/[^a-zA-Z0-9]/g, "_")   // replace non-alphanumeric with underscore
+    .replace(/_+/g, "_")             // collapse multiple underscores
+    .replace(/^_|_$/g, "");          // trim leading/trailing underscores
+}
+
 export function setByPath(obj: any, path: string, value: any) {
   const parts = path.split(".");
   const last = parts.pop()!;

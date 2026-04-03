@@ -7,7 +7,7 @@ import { Modal } from "./components/ui/Modal";
 import { SaveStatusIndicator } from "./components/ui/SaveStatus";
 import { useAutoSave } from "./hooks/useAutoSave";
 import type { AnyData, SessionData, StudentData } from "./types";
-import { setByPath, exportJSON, isDateISO, isEmail, isPhoneFRRE } from "./utils";
+import { setByPath, exportJSON, isDateISO, isEmail, isPhoneFRRE, sanitizeFilename } from "./utils";
 import { createEmptySession, createEmptyStudent, migrateLegacyData } from "./sessionUtils";
 
 // Import Steps
@@ -137,10 +137,12 @@ export default function App() {
       const text = await importFile.text();
       const json = JSON.parse(text);
       if (!Array.isArray(json.students)) {
-        alert("Format invalide : le fichier ne contient pas de liste d'élèves.");
-        return;
+        // Assume single student format / legacy format
+        const migratedSession = migrateLegacyData(json);
+        setSession(migratedSession);
+      } else {
+        setSession(json);
       }
-      setSession(json);
       setShowImportConfirm(false);
       setImportFile(null);
       setStep(0);
@@ -150,15 +152,16 @@ export default function App() {
     }
   };
 
-  // Prepare data for print (Merge session teacher info)
-  const preparePrintData = (student: StudentData, teacher: SessionData['teacher']) => {
+  // Prepare data for export/print (Merge session teacher info)
+  const prepareExportData = (student: StudentData, teacher: SessionData['teacher']) => {
     return {
       ...student,
       etablissement: {
         ...student.etablissement,
         ecole: teacher.ecole,
         type_ecole: teacher.type_ecole,
-        enseignant: teacher.nom
+        enseignant: teacher.nom,
+        classe: teacher.classe
       }
     };
   };
@@ -293,12 +296,27 @@ export default function App() {
           <ConformiteExport
             data={currentStudent}
             update={updateCurrentStudent}
-            onExportJSON={() => exportJSON(currentStudent, `rased-${currentStudent.name || "eleve"}.json`)}
-            onPrint={() => doPrint(
-              preparePrintData(currentStudent, session.teacher),
-              currentStudent.settings?.logoUrl || "",
-              currentStudent.settings?.accentColor
-            )}
+            onExportJSON={() => {
+              const exportData = prepareExportData(currentStudent, session.teacher);
+              const ens = sanitizeFilename(session.teacher.nom) || "enseignant";
+              const nom = sanitizeFilename(currentStudent.eleve.nom) || "nom";
+              const prenom = sanitizeFilename(currentStudent.eleve.prenom) || "prenom";
+              exportJSON(exportData, `demande-aide_${ens}_${nom}_${prenom}.json`);
+            }}
+            onPrint={() => {
+              const printData = prepareExportData(currentStudent, session.teacher);
+              const ecole = sanitizeFilename(session.teacher.ecole === "__AUTRE__" ? printData.etablissement.ecole_libre : session.teacher.ecole) || "ecole";
+              const nom = sanitizeFilename(currentStudent.eleve.nom) || "nom";
+              const prenom = sanitizeFilename(currentStudent.eleve.prenom) || "prenom";
+              const defaultFileName = `demande-aide_${ecole}_${nom}_${prenom}`;
+
+              doPrint(
+                printData,
+                currentStudent.settings?.logoUrl || "",
+                currentStudent.settings?.accentColor,
+                defaultFileName
+              );
+            }}
           />
         )}
       </Card>
