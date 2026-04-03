@@ -13,12 +13,121 @@ export type SuiviType =
   | "SESSAD"
   | "Autre";
 
-export type AnyData = Record<string, any>;
+// --- Base Types for Validation & Consistency ---
 
-export interface StudentData extends AnyData {
-  id: string;
-  name: string; // Display name for tab (computed from nom/prenom)
+export interface SanteData {
+  trouble_auditif?: "Oui" | "Non";
+  trouble_auditif_details?: string;
+  trouble_visuel?: "Oui" | "Non";
+  trouble_visuel_details?: string;
 }
+
+export interface SuiviExterieurData {
+  dispositif: string;
+  professionnel?: string;
+  professionnel_libre?: string;
+  frequence?: string;
+  contact?: string;
+}
+
+export interface EvaluationItem {
+  item: string;
+  evaluation?: string;
+  observation?: string;
+  frequence?: string;
+  qualite?: string;
+}
+
+export interface ApprentissagesDetail {
+  code?: {
+    stade?: string;
+    observation?: string;
+  };
+  lecture?: {
+    fluence_mcl?: string;
+    date?: string;
+  };
+}
+
+export interface ReponseEcoleDetail {
+  actif?: boolean;
+  details?: string;
+}
+
+export interface ReponsesEcoleData {
+  apc?: ReponseEcoleDetail;
+  differenciation?: ReponseEcoleDetail;
+  autres?: string;
+}
+
+export interface FamilleResponsable {
+  nom: string;
+  tel: string;
+  email: string;
+}
+
+export interface StudentData {
+  id: string;
+  name: string; // Internal tab name, often "Nouvel élève"
+
+  // Unified core structure based on wizard steps:
+  etablissement?: {
+    enseignant?: string;
+    ecole?: string;
+    ecole_libre?: string;
+    date_demande?: string;
+  };
+
+  eleve?: {
+    nom?: string;
+    prenom?: string;
+    date_naissance?: string;
+    sexe?: "F" | "M";
+    niveau?: string;
+    niveau_classe?: string;
+    deja_maintenu?: boolean;
+    niveau_maintien?: string;
+  };
+
+  famille?: {
+    responsable1_nom?: string;
+    responsable1_tel?: string;
+    responsable1_email?: string;
+    responsable2_nom?: string;
+    responsable2_tel?: string;
+    responsable2_email?: string;
+  };
+
+  difficultes?: string;
+  reponses_ecole?: ReponsesEcoleData;
+  sante?: SanteData;
+  suivis_exterieurs?: SuiviExterieurData[];
+
+  place_parents?: string;
+
+  comportement?: EvaluationItem[];
+  apprentissages?: EvaluationItem[];
+  apprentissages_detail?: ApprentissagesDetail;
+
+  besoins_prioritaires?: string[];
+  remarques_besoins?: string;
+
+  conformites?: {
+    parents_informes?: boolean;
+    ppre_joint?: boolean;
+  };
+
+  settings?: {
+    logoUrl?: string;
+    accentColor?: string;
+  };
+
+  meta?: {
+    date_edition?: string;
+  };
+}
+
+export type AnyData = Partial<StudentData>;
 
 export interface SessionData {
   teacher: {
