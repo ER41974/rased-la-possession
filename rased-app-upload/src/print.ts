@@ -2,32 +2,80 @@ import type { AnyData } from "./types";
 import { esc, toDataURL } from "./utils";
 
 const PRINT_CSS = `
-@page { size: A4 portrait; margin: 12mm; }
+@page { size: A4 portrait; margin: 15mm; }
 @media print {
-  html, body { height: auto; }
+  html, body { height: auto; background: white; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print { display: none !important; }
-  .section { break-inside: avoid; margin-bottom: 12px; }
-  .pb { break-before: page; }
+  .pb { page-break-before: always; }
+  .section { break-inside: avoid; margin-bottom: 24px; }
   h1, h2, h3 { break-after: avoid; }
 }
-:root { --accent: #000091; }
-body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
-.header {
-  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;
-  border-bottom: 2px solid var(--accent); padding-bottom: 8px;
+:root {
+  --accent: #000091;
+  --green: #10B981;
+  --green-bg: #ECFDF5;
+  --blue: #3B82F6;
+  --blue-bg: #EFF6FF;
+  --red: #EF4444;
+  --red-bg: #FEF2F2;
+  --gray: #6B7280;
+  --gray-bg: #F3F4F6;
 }
-.logo { width: 64px; height: 64px; object-fit: contain; }
-.hint { font-size: 12px; opacity: .75; }
-.table { width:100%; border-collapse: collapse; margin-top: 6px; }
-.table th, .table td { border:1px solid #ddd; padding:6px; font-size:12px; vertical-align: top; }
-.section-title { color: var(--accent); margin: 8px 0; border-bottom: 1px solid #eee; padding-bottom: 2px; }
-.sub-title { font-weight: bold; margin-top: 8px; margin-bottom: 4px; font-size: 14px; }
-.badge { display:inline-block; padding:2px 6px; border-radius:6px; font-size:12px; border:1px solid var(--accent); }
-.grid { display:grid; gap:8px; }
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: #1F2937;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.header {
+  display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px;
+  border-bottom: 3px solid var(--accent); padding-bottom: 12px;
+}
+.header h1 { font-size: 24px; font-weight: 700; color: var(--accent); margin: 0 0 4px 0; }
+.logo { width: 72px; height: 72px; object-fit: contain; }
+.hint { font-size: 12px; color: #6B7280; }
+.table { width:100%; border-collapse: collapse; margin-top: 8px; }
+.table th, .table td {
+  border: 1px solid #E5E7EB;
+  padding: 8px 12px;
+  font-size: 13px;
+  vertical-align: top;
+}
+.table th { background: #F9FAFB; font-weight: 600; text-align: left; color: #374151; }
+.section-title {
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  border-bottom: 2px solid #E5E7EB;
+  padding-bottom: 4px;
+}
+.sub-title { font-weight: 600; color: #374151; margin-top: 16px; margin-bottom: 8px; font-size: 15px; }
+.badge { display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; font-weight: 600; border:1px solid #E5E7EB; background: #F9FAFB; color: #4B5563; }
+.eval-badge {
+  display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; white-space: nowrap;
+}
+.eval-green { background: var(--green-bg); color: #065F46; border: 1px solid #A7F3D0; }
+.eval-blue { background: var(--blue-bg); color: #1E40AF; border: 1px solid #BFDBFE; }
+.eval-red { background: var(--red-bg); color: #991B1B; border: 1px solid #FECACA; }
+.eval-gray { background: var(--gray-bg); color: #374151; border: 1px solid #D1D5DB; }
+
+.grid { display:grid; gap:16px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
 .small { font-size: 12px; }
-.box { border: 1px solid #eee; padding: 8px; border-radius: 4px; background: #f9fafb; margin-top: 4px; }
+.box { border: 1px solid #E5E7EB; padding: 12px; border-radius: 8px; background: #F9FAFB; margin-top: 8px; }
+.card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.card-title { font-weight: 600; font-size: 14px; color: #4B5563; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.value-label { font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
+.value-text { font-size: 14px; font-weight: 500; color: #111827; }
+.list-disc { padding-left: 20px; margin-top: 8px; margin-bottom: 8px; }
+.list-disc li { margin-bottom: 4px; }
+.bar-chart { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bar-chart-label { width: 45%; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-container { flex-grow: 1; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
 `;
 
 type PrintOptions = { title?: string; logoDataUrl?: string; accent?: string };
@@ -44,11 +92,59 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
   const getComp = (item: string) => (d.comportement || []).find((x: any) => x.item === item);
   const getAppr = (item: string) => (d.apprentissages || []).find((x: any) => x.item === item);
 
+  const getBadgeClass = (val: string) => {
+    const v = (val || "").toLowerCase();
+    if (v.includes("très satisfaisant") || v.includes("excellente") || v.includes("jamais")) return "eval-green";
+    if (v.includes("satisfaisant") || v.includes("bonne") || v.includes("rarement")) return "eval-blue";
+    if (v.includes("problématique") || v.includes("fragile") || v.includes("souvent") || v.includes("toujours")) return "eval-red";
+    return "eval-gray";
+  };
+
+  const getScore = (val: string) => {
+    const v = (val || "").toLowerCase();
+    if (v.includes("très satisfaisant") || v.includes("excellente") || v.includes("jamais")) return 3;
+    if (v.includes("satisfaisant") || v.includes("bonne") || v.includes("rarement")) return 2;
+    if (v.includes("problématique") || v.includes("fragile") || v.includes("souvent") || v.includes("toujours")) return 1;
+    return 0; // Unknown or not filled
+  };
+
+  const renderEvalBadge = (val: string) => {
+    if (!val) return "—";
+    return `<span class="eval-badge ${getBadgeClass(val)}">${esc(val)}</span>`;
+  };
+
+  const renderBarChart = (title: string, items: {label: string, score: number}[]) => {
+    const validItems = items.filter(i => i.score > 0);
+    if (validItems.length === 0) return "";
+
+    return `
+      <div style="margin-bottom: 16px;">
+        <div class="sub-title" style="margin-top: 0;">${esc(title)}</div>
+        ${validItems.map(item => {
+          const width = (item.score / 3) * 100;
+          let color = "var(--gray)";
+          if (item.score === 3) color = "var(--green)";
+          if (item.score === 2) color = "var(--blue)";
+          if (item.score === 1) color = "var(--red)";
+
+          return `
+            <div class="bar-chart">
+              <div class="bar-chart-label" title="${esc(item.label)}">${esc(item.label)}</div>
+              <div class="bar-container">
+                <div class="bar-fill" style="width: ${width}%; background-color: ${color};"></div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  };
+
   const renderEvalRow = (item: string, entry: any) => {
     if (!entry) return "";
     return `<tr>
       <td><b>${esc(item)}</b></td>
-      <td>${esc(entry.evaluation || "—")}</td>
+      <td>${renderEvalBadge(entry.evaluation)}</td>
       <td>${esc(entry.observation || "")}</td>
     </tr>`;
   };
@@ -58,8 +154,8 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
     return `<tr>
       <td><b>${esc(item)}</b></td>
       <td>
-        <div>Freq: ${esc(entry.frequence || "—")}</div>
-        <div>Qual: ${esc(entry.qualite || "—")}</div>
+        <div style="margin-bottom: 4px;">Freq: ${renderEvalBadge(entry.frequence)}</div>
+        <div>Qual: ${renderEvalBadge(entry.qualite)}</div>
       </td>
       <td>${esc(entry.observation || "")}</td>
     </tr>`;
@@ -84,6 +180,18 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
   // Besoins
   const besoins = d.besoins_prioritaires || [];
 
+  // Synthèse Graphique Data
+  const compScores = COMP_ITEMS.map(i => {
+    const entry = getComp(i);
+    // Reverse score for negative items? "Attitude face à l'erreur" -> wait, "Problématique" is always bad.
+    return { label: i, score: entry ? getScore(entry.evaluation) : 0 };
+  });
+
+  const apprScores = [
+    ...APPR_LECTURE.map(i => ({ label: `Lecture: ${i}`, score: getAppr(i) ? getScore(getAppr(i).evaluation) : 0 })),
+    ...APPR_MATH.map(i => ({ label: `Math: ${i}`, score: getAppr(i) ? getScore(getAppr(i).evaluation) : 0 }))
+  ];
+
   return `<!doctype html>
 <html lang="fr">
 <head>
@@ -105,64 +213,84 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
 </header>
 
 <section class="section">
-  <h2 class="section-title">Établissement & élève</h2>
-  <div class="grid grid-2">
-    <div><b>École</b><br/>${esc(schoolName || "—")}</div>
-    <div><b>Enseignant</b><br/>${esc(d.etablissement?.enseignant || "—")}</div>
-    <div><b>Date de la demande</b><br/>${esc(d.etablissement?.date_demande || "—")}</div>
-    <div><b>Élève</b><br/>${esc(d.eleve?.nom || "")} ${esc(d.eleve?.prenom || "")}</div>
-    <div><b>Date de naissance</b><br/>${esc(d.eleve?.date_naissance || "—")}</div>
-    <div><b>Sexe</b><br/>${esc(d.eleve?.sexe || "—")}</div>
-    <div><b>Niveau</b><br/>${esc(d.eleve?.niveau || "")} ${d.eleve?.niveau_classe ? `(${d.eleve.niveau_classe})` : ""}</div>
-    <div><b>Déjà maintenu ?</b><br/>${d.eleve?.deja_maintenu ? `Oui (${esc(d.eleve?.niveau_maintien || "")})` : "Non"}</div>
+  <div class="card" style="background-color: var(--blue-bg); border-color: var(--blue);">
+    <div class="grid grid-3">
+      <div>
+        <div class="value-label">Élève</div>
+        <div class="value-text" style="font-size: 16px; font-weight: 700;">${esc(d.eleve?.nom || "")} ${esc(d.eleve?.prenom || "")}</div>
+        <div style="margin-top: 4px;">Né(e) le : <b>${esc(d.eleve?.date_naissance || "—")}</b> (${esc(d.eleve?.sexe || "—")})</div>
+        <div>Niveau : <b>${esc(d.eleve?.niveau || "")} ${d.eleve?.niveau_classe ? `(${d.eleve.niveau_classe})` : ""}</b></div>
+        ${d.eleve?.deja_maintenu ? `<div style="color: var(--red); font-weight: 600; margin-top: 4px;">⚠ Déjà maintenu (${esc(d.eleve?.niveau_maintien || "")})</div>` : ""}
+      </div>
+      <div>
+        <div class="value-label">Établissement</div>
+        <div class="value-text"><b>${esc(schoolName || "—")}</b></div>
+        <div>Enseignant : <b>${esc(d.etablissement?.enseignant || "—")}</b></div>
+        <div>Date de demande : <b>${esc(d.etablissement?.date_demande || "—")}</b></div>
+      </div>
+      <div>
+        <div class="value-label">Responsables légaux</div>
+        <div><b>1.</b> ${esc(d.famille?.responsable1_nom || "—")}</div>
+        <div class="small">${esc(d.famille?.responsable1_tel || "")} ${esc(d.famille?.responsable1_email || "")}</div>
+        ${d.famille?.responsable2_nom ? `
+          <div style="margin-top: 4px;"><b>2.</b> ${esc(d.famille?.responsable2_nom)}</div>
+          <div class="small">${esc(d.famille?.responsable2_tel || "")} ${esc(d.famille?.responsable2_email || "")}</div>
+        ` : ""}
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="section">
-  <h2 class="section-title">Famille</h2>
+  <h2 class="section-title">Motifs & Contexte</h2>
+
+  <div class="card">
+    <div class="card-title">Difficultés observées</div>
+    <div>${esc(d.difficultes || "—")}</div>
+  </div>
+
   <div class="grid grid-2">
-    <div><b>Responsable légal 1</b><br/>${esc(d.famille?.responsable1_nom || "—")}<br/>${esc(d.famille?.responsable1_tel || "")} ${esc(d.famille?.responsable1_email || "")}</div>
-    <div><b>Responsable légal 2</b><br/>${d.famille?.responsable2_nom ? `${esc(d.famille?.responsable2_nom)}<br/>${esc(d.famille?.responsable2_tel || "")} ${esc(d.famille?.responsable2_email || "")}` : "—"}</div>
+    <div class="card">
+      <div class="card-title">Réponses de l'école</div>
+      <ul class="list-disc">
+        <li><b>APC:</b> ${d.reponses_ecole?.apc?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.apc?.details ? `(${esc(d.reponses_ecole.apc.details)})` : ""}</li>
+        <li><b>Différenciation:</b> ${d.reponses_ecole?.differenciation?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.differenciation?.details ? `(${esc(d.reponses_ecole.differenciation.details)})` : ""}</li>
+        ${d.reponses_ecole?.autres ? `<li><b>Autres:</b> ${esc(d.reponses_ecole.autres)}</li>` : ""}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Santé — Dépistage</div>
+      <ul class="list-disc">
+        <li><b>Problème auditif:</b> ${renderEvalBadge(d.sante?.trouble_auditif || "Non")} ${d.sante?.trouble_auditif_details ? `(${esc(d.sante.trouble_auditif_details)})` : ""}</li>
+        <li><b>Problème visuel:</b> ${renderEvalBadge(d.sante?.trouble_visuel || "Non")} ${d.sante?.trouble_visuel_details ? `(${esc(d.sante.trouble_visuel_details)})` : ""}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">Suivis extérieurs</div>
+      ${d.suivis_exterieurs && d.suivis_exterieurs.length > 0 ? `
+      <ul class="list-disc">
+        ${d.suivis_exterieurs.map((s: any) => `
+          <li><b>${esc(s.dispositif)}</b>: ${esc(s.professionnel || s.professionnel_libre || "")} ${s.frequence ? `(${esc(s.frequence)})` : ""} ${s.contact ? `[${esc(s.contact)}]` : ""}</li>
+        `).join("")}
+      </ul>
+      ` : "<div class='small text-gray-500'>Aucun suivi extérieur renseigné.</div>"}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Place des parents</div>
+      <div>${esc(d.place_parents || "—")}</div>
+    </div>
   </div>
 </section>
 
-<section class="section">
-  <h2 class="section-title">Difficultés & suivis</h2>
-  <div class="sub-title">Difficultés observées</div>
-  <div>${esc(d.difficultes || "—")}</div>
-
-  <div class="sub-title">Réponses mises en place à l'école</div>
-  <ul>
-    <li><b>APC:</b> ${d.reponses_ecole?.apc?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.apc?.details ? `(${esc(d.reponses_ecole.apc.details)})` : ""}</li>
-    <li><b>Différenciation:</b> ${d.reponses_ecole?.differenciation?.actif ? "Oui" : "Non"} ${d.reponses_ecole?.differenciation?.details ? `(${esc(d.reponses_ecole.differenciation.details)})` : ""}</li>
-    ${d.reponses_ecole?.autres ? `<li><b>Autres:</b> ${esc(d.reponses_ecole.autres)}</li>` : ""}
-  </ul>
-
-  <div class="sub-title">Santé — dépistage</div>
-  <ul>
-    <li><b>Problème auditif:</b> ${esc(d.sante?.trouble_auditif || "Non")} ${d.sante?.trouble_auditif_details ? `(${esc(d.sante.trouble_auditif_details)})` : ""}</li>
-    <li><b>Problème visuel:</b> ${esc(d.sante?.trouble_visuel || "Non")} ${d.sante?.trouble_visuel_details ? `(${esc(d.sante.trouble_visuel_details)})` : ""}</li>
-  </ul>
-
-  <div class="sub-title">Suivis extérieurs</div>
-  ${d.suivis_exterieurs && d.suivis_exterieurs.length > 0 ? `
-  <ul>
-    ${d.suivis_exterieurs.map((s: any) => `
-      <li><b>${esc(s.dispositif)}</b>: ${esc(s.professionnel || s.professionnel_libre || "")} ${s.frequence ? `(${esc(s.frequence)})` : ""} ${s.contact ? `[Contact: ${esc(s.contact)}]` : ""}</li>
-    `).join("")}
-  </ul>
-  ` : "Aucun suivi extérieur renseigné."}
-</section>
-
-<section class="section">
-  <h2 class="section-title">Place des parents</h2>
-  <div>${esc(d.place_parents || "—")}</div>
-</section>
-
-<section class="section">
+<section class="section pb">
   <h2 class="section-title">Comportement & Relations</h2>
   <table class="table">
-    <thead><tr><th style="width:40%">Item</th><th style="width:25%">Évaluation</th><th>Observations</th></tr></thead>
+    <thead><tr><th style="width:40%">Item</th><th style="width:20%">Évaluation</th><th>Observations</th></tr></thead>
     <tbody>
       ${COMP_ITEMS.map(i => renderEvalRow(i, getComp(i))).join("")}
       ${REL_ITEMS.map(i => renderRelRow(i, getComp(i))).join("")}
@@ -170,7 +298,7 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
   </table>
 </section>
 
-<section class="section">
+<section class="section pb">
   <h2 class="section-title">Apprentissages</h2>
 
   <div class="sub-title">Lecture</div>
@@ -180,16 +308,21 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
     </tbody>
   </table>
 
-  ${(codeDetails.stade || codeDetails.observation) ? `
-  <div class="box small">
-    <b>Précisions Code :</b> Stade de maîtrise : ${esc(codeDetails.stade || "—")}<br/>
-    <i>${esc(codeDetails.observation || "")}</i>
-  </div>` : ""}
+  <div class="grid grid-2" style="margin-top: 12px; margin-bottom: 16px;">
+    ${(codeDetails.stade || codeDetails.observation) ? `
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-title">Précisions Code</div>
+      <div style="margin-bottom: 4px;">Stade de maîtrise : <b>${esc(codeDetails.stade || "—")}</b></div>
+      <i class="small text-gray-600">${esc(codeDetails.observation || "")}</i>
+    </div>` : "<div></div>"}
 
-  ${lectDetails.fluence_mcl ? `
-  <div class="box small">
-    <b>Fluence :</b> ${esc(lectDetails.fluence_mcl)} Mots/min (${esc(lectDetails.date || "")})
-  </div>` : ""}
+    ${lectDetails.fluence_mcl ? `
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-title">Fluence</div>
+      <div style="font-size: 16px;"><b>${esc(lectDetails.fluence_mcl)}</b> Mots/min</div>
+      <div class="small text-gray-500">Date d'évaluation : ${esc(lectDetails.date || "—")}</div>
+    </div>` : "<div></div>"}
+  </div>
 
   <div class="sub-title">Langage Oral</div>
   <table class="table">
@@ -208,16 +341,36 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
 </section>
 
 <section class="section pb">
-  <h2 class="section-title">Besoins prioritaires</h2>
-  <ul>
-    <li>${esc(besoins[0] || "—")}</li>
-    <li>${esc(besoins[1] || "—")}</li>
-  </ul>
-</section>
+  <h2 class="section-title">Synthèse & Besoins</h2>
 
-<section class="section">
-  <h2 class="section-title">Remarques complémentaires</h2>
-  <div>${esc(d.remarques_besoins || "—")}</div>
+  ${(compScores.some(s => s.score > 0) || apprScores.some(s => s.score > 0)) ? `
+  <div class="card">
+    <div class="card-title">Aperçu visuel des évaluations</div>
+    <div class="grid grid-2">
+      ${renderBarChart("Comportement", compScores)}
+      ${renderBarChart("Apprentissages (Extraits)", apprScores)}
+    </div>
+    <div class="small text-gray-500" style="margin-top: 8px;">
+      <span style="display:inline-block; width:8px; height:8px; background:var(--green); border-radius:50%; margin-right:4px;"></span> Très satisfaisant
+      <span style="display:inline-block; width:8px; height:8px; background:var(--blue); border-radius:50%; margin-right:4px; margin-left:12px;"></span> Satisfaisant
+      <span style="display:inline-block; width:8px; height:8px; background:var(--red); border-radius:50%; margin-right:4px; margin-left:12px;"></span> Problématique
+    </div>
+  </div>
+  ` : ""}
+
+  <div class="card" style="background-color: var(--blue-bg); border-color: var(--blue); margin-bottom: 24px;">
+    <div class="card-title" style="color: var(--accent);">Besoins prioritaires identifiés</div>
+    <ul class="list-disc" style="font-size: 14px; font-weight: 500;">
+      ${besoins[0] ? `<li>${esc(besoins[0])}</li>` : ""}
+      ${besoins[1] ? `<li>${esc(besoins[1])}</li>` : ""}
+      ${(!besoins[0] && !besoins[1]) ? "<li style='color: #6B7280; font-weight: normal; font-style: italic;'>Non renseignés</li>" : ""}
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Remarques complémentaires</div>
+    <div style="white-space: pre-wrap;">${esc(d.remarques_besoins || "Aucune remarque complémentaire.")}</div>
+  </div>
 </section>
 
 <footer class="hint" style="margin-top:24px; text-align:center;">
