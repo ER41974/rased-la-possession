@@ -2,38 +2,77 @@ import type { AnyData } from "./types";
 import { esc, toDataURL } from "./utils";
 
 const PRINT_CSS = `
-@page { size: A4 portrait; margin: 12mm; }
+@page { size: A4 portrait; margin: 15mm; }
 @media print {
   html, body { height: auto; }
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print { display: none !important; }
-  .section { break-inside: avoid; margin-bottom: 12px; }
+  .section { break-inside: avoid; margin-bottom: 16px; }
   .pb { break-before: page; }
   h1, h2, h3 { break-after: avoid; }
 }
-:root { --accent: #000091; }
-body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
-.header {
-  display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;
-  border-bottom: 2px solid var(--accent); padding-bottom: 8px;
+:root {
+  --accent: #000091;
+  --marianne-red: #e1000f;
+  --dsfr-alt: #f6f6f6;
+  --text-main: #161616;
 }
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 24px;
+}
+.marianne {
+  border-left: 4px solid var(--accent);
+  padding-left: 8px;
+  font-weight: bold;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 14px;
+  line-height: 1.1;
+  letter-spacing: 0.05em;
+}
+.header-title {
+  text-align: right;
+}
+.header-title h1 {
+  margin: 0; color: var(--accent); font-size: 20px;
+}
+.header-stripe {
+  height: 4px; width: 100%; display: flex; margin-bottom: 16px;
+}
+.header-stripe > div { flex: 1; }
+.stripe-blue { background: var(--accent); }
+.stripe-white { background: white; }
+.stripe-red { background: var(--marianne-red); }
+
 .logo { width: 64px; height: 64px; object-fit: contain; }
-.hint { font-size: 12px; opacity: .75; }
-.table { width:100%; border-collapse: collapse; margin-top: 6px; }
-.table th, .table td { border:1px solid #ddd; padding:6px; font-size:12px; vertical-align: top; }
-.section-title { color: var(--accent); margin: 8px 0; border-bottom: 1px solid #eee; padding-bottom: 2px; }
-.sub-title { font-weight: bold; margin-top: 8px; margin-bottom: 4px; font-size: 14px; }
-.badge { display:inline-block; padding:2px 6px; border-radius:6px; font-size:12px; border:1px solid var(--accent); }
-.grid { display:grid; gap:8px; }
+.hint { font-size: 12px; color: #666; }
+.table { width:100%; border-collapse: collapse; margin-top: 8px; }
+.table th { background: var(--dsfr-alt); text-align: left; font-weight: 600; color: var(--accent); }
+.table th, .table td { border: 1px solid #e5e5e5; padding: 8px; font-size: 13px; vertical-align: top; }
+.section-title {
+  color: var(--accent);
+  margin: 16px 0 8px 0;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 4px;
+  font-size: 16px;
+}
+.sub-title { font-weight: 600; margin-top: 12px; margin-bottom: 4px; font-size: 14px; color: #333; }
+.badge { display:inline-block; padding:4px 8px; border-radius: 4px; font-size:12px; background: var(--dsfr-alt); border: 1px solid #ddd;}
+.grid { display:grid; gap:12px; }
 .grid-2 { grid-template-columns: 1fr 1fr; }
 .small { font-size: 12px; }
-.box { border: 1px solid #eee; padding: 8px; border-radius: 4px; background: #f9fafb; margin-top: 4px; }
+.box { border-left: 4px solid var(--accent); padding: 12px; background: var(--dsfr-alt); margin-top: 8px; }
 `;
 
 type PrintOptions = { title?: string; logoDataUrl?: string; accent?: string };
 
 function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
-  const { title = "Éducation nationale – RASED", logoDataUrl = "", accent = "#000091" } = opts;
+  const { title = "Demande d'aide RASED", logoDataUrl = "", accent = "#000091" } = opts;
 
   const schoolName =
     d.etablissement?.ecole && d.etablissement?.ecole !== "__AUTRE__"
@@ -89,19 +128,32 @@ function buildPrintableHTML(d: AnyData, opts: PrintOptions) {
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <title>${esc(title)}</title>
-<style>${PRINT_CSS.replace(":root { --accent: #000091; }", `:root { --accent: ${accent}; }`)}</style>
+<style>${PRINT_CSS.replace(":root { --accent: #000091;", `:root { --accent: ${accent};`)}</style>
 </head>
 <body>
+
+<div class="header-stripe">
+  <div class="stripe-blue"></div>
+  <div class="stripe-white"></div>
+  <div class="stripe-red"></div>
+</div>
+
 <header class="header">
-  <div style="display:flex;align-items:center;gap:12px;">
-    ${logoDataUrl ? `<img class="logo" src="${logoDataUrl}" alt="Logo Éducation nationale" />` : ""}
-    <div>
-      <h1 style="margin:0;">${esc(title)}</h1>
-      <div class="hint">${esc(schoolName || "")}</div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="marianne">
+      République<br/>Française
     </div>
+    ${logoDataUrl ? `<img class="logo" src="${logoDataUrl}" alt="Logo Académie" />` : ""}
   </div>
-  <div class="badge">Édité le ${esc(d.meta?.date_edition || "")}</div>
+  <div class="header-title">
+    <h1>${esc(title)}</h1>
+    <div class="hint" style="margin-top:4px;">Circonscription de La Possession</div>
+    <div style="margin-top:8px;" class="badge">Édité le ${esc(d.meta?.date_edition || "")}</div>
+  </div>
 </header>
 
 <section class="section">
